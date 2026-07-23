@@ -70,11 +70,10 @@ localStorage.setItem("trackerConnected", "true");
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
     }
-   socket.emit("deviceOffline", {
-    deviceId,
-});
+  socket.emit("deviceOffline", { deviceId }, () => {
+        socket.disconnect();
+    });
 
-socket.disconnect();
     
 setConnected(false);
 localStorage.removeItem("trackerConnected");

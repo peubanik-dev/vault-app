@@ -62,32 +62,34 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("deviceOffline", async ({ deviceId }) => {
-        try {
-            const sockets = activeDevices.get(deviceId);
+    socket.on("deviceOffline", async ({ deviceId }, callback) => {
+    try {
+        const sockets = activeDevices.get(deviceId);
 
-            if (sockets) {
-                sockets.delete(socket.id);
+        if (sockets) {
+            sockets.delete(socket.id);
 
-                if (sockets.size === 0) {
-                    activeDevices.delete(deviceId);
+            if (sockets.size === 0) {
+                activeDevices.delete(deviceId);
 
-                    const device = await Device.findOne({ deviceId });
+                const device = await Device.findOne({ deviceId });
 
-                    if (device) {
-                        device.isOnline = false;
-                        await device.save();
-                    }
-
-                    io.emit("deviceOffline", { deviceId });
-
-                    console.log(`${deviceId} explicitly offline`);
+                if (device) {
+                    device.isOnline = false;
+                    await device.save();
                 }
+
+                io.emit("deviceOffline", { deviceId });
+
+                console.log(`${deviceId} explicitly offline`);
             }
-        } catch (err) {
-            console.error(err);
         }
-    });
+
+        if (callback) callback();
+    } catch (err) {
+        console.error(err);
+    }
+});
 
     socket.on("disconnect", async () => {
         try {
