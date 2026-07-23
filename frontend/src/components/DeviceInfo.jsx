@@ -1,4 +1,4 @@
-export default function DeviceInfo({ location,device,handleSOS }) {
+export default function DeviceInfo({ location,device,handleSOS, stats, }) {
    if (!location) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6 h-full flex items-center justify-center">
@@ -25,7 +25,15 @@ const isOnline = device?.isOnline;
        <p>
 🔋 Battery : {device?.battery != null ? `${device.battery}%` : "N/A"}</p>
 <p>
-  🚗 Speed :{" "}{location.speed != null  ? (location.speed * 3.6).toFixed(1)   : "0.0"}{" "} km/h
+  🚗 Current Speed :{" "}{location.speed != null  ? (location.speed * 3.6).toFixed(1)   : "0.0"}{" "} km/h
+</p>
+
+<p>
+  🛣️ Distance Today : {stats?.distance ?? "0.00"} km
+</p>
+
+<p>
+  ⚡ Average Speed : {stats?.averageSpeed ?? "0.00"} km/h
 </p>
         <p>
           📍 Latitude : {location.latitude.toFixed(6)}

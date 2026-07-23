@@ -20,6 +20,7 @@ const [isPlaying, setIsPlaying] = useState(false);
   const [newSecret, setNewSecret] = useState(null);
   const [geofences, setGeofences] = useState([]);
   const [sosLocation, setSosLocation] = useState(null);
+  const [stats, setStats] = useState({distance: "0.00", averageSpeed: "0.00",});
 
   const fetchDevices = async () => {
     try {
@@ -47,6 +48,24 @@ setSelectedDevice((prev) => {
       setLoadingDevices(false);
     }
   };
+  const fetchStats = async () => {
+  if (!selectedDevice) return;
+
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/location/stats/${selectedDevice.deviceId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    setStats(res.data);
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+  }
+};
   const handleSOS = () => {
   if (!selectedDevice) {
     toast.error("No device selected");
@@ -158,6 +177,12 @@ setHistory(sortedHistory);
   }, []);
 
   useEffect(() => {
+  if (selectedDevice) {
+    fetchStats();
+  }
+}, [selectedDevice]);
+
+  useEffect(() => {
     if (!selectedDevice) return;
         setHistory([]);
 
@@ -197,8 +222,7 @@ setHistory(sortedHistory);
   const handleSOSAlert = (data) => {
   console.log("🚨 SOS RECEIVED:", data);
 
-  toast.error(`SOS Alert from ${data.deviceId}`);
-
+toast.success(`SOS Alert from ${data.deviceId}`);
   setSosLocation({
     latitude: data.latitude,
     longitude: data.longitude,
@@ -264,6 +288,7 @@ useEffect(() => {
         },
       ];
     });
+    fetchStats();
   };
 
   const handleGeofenceAlert = (data) => {
@@ -422,6 +447,7 @@ const secretBanner = newSecret && (
             location={location}
             device={selectedDevice}
               handleSOS={handleSOS}
+               stats={stats}
 
           />
         </div>

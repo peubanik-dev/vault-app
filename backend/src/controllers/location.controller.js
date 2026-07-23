@@ -1,6 +1,7 @@
 import Device from "../models/device.model.js";
 import Location from "../models/location.model.js";
 import { checkGeofence } from "../services/geofence.service.js";
+import { calculateDistance } from "../utils/distance.js";
 export const updateLocation = async (req, res) => {
     try {
         const {
@@ -175,3 +176,56 @@ export const getLocationHistory = async (req, res) => {
         });
     }
 };
+export const getTravelStats = async (req, res) => {
+    try {
+        const { deviceId } = req.params;
+
+        const device = await Device.findOne({ deviceId });
+
+        if (!device) {
+            return res.status(404).json({
+                message: "Device not found",
+            });
+        }
+
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const locations = await Location.find({
+            device: device._id,
+            createdAt: { $gte: startOfDay },
+        }).sort({ createdAt: 1 });
+
+        let totalDistance = 0;
+
+        for (let i = 1; i < locations.length; i++) {
+            totalDistance += calculateDistance(
+                locations[i - 1].latitude,
+                locations[i - 1].longitude,
+                locations[i].latitude,
+                locations[i].longitude
+            );
+        }
+
+        let averageSpeed = 0;
+
+        if (locations.length > 0) {
+            averageSpeed =
+                locations.reduce((sum, loc) => sum + (loc.speed || 0), 0) /
+                locations.length;
+        }
+
+        return res.status(200).json({
+            distance: (totalDistance / 1000).toFixed(2),
+            averageSpeed: (averageSpeed * 3.6).toFixed(2),
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal Server Error",
+        });
+    }
+};
+
+
