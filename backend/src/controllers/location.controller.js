@@ -2,6 +2,7 @@ import Device from "../models/device.model.js";
 import Location from "../models/location.model.js";
 import { checkGeofence } from "../services/geofence.service.js";
 import { calculateDistance } from "../utils/distance.js";
+import Notification from "../models/notification.model.js";
 export const updateLocation = async (req, res) => {
     try {
         const {
@@ -53,6 +54,20 @@ export const updateLocation = async (req, res) => {
             latitude,
            longitude
           );
+          
+          for (const alert of geofenceAlerts) {
+    await Notification.create({
+        device: device._id,
+        type:
+            alert.type === "ENTER"
+                ? "GEOFENCE_ENTER"
+                : "GEOFENCE_EXIT",
+        message:
+            alert.type === "ENTER"
+                ? `Entered ${alert.fenceName} geofence`
+                : `Exited ${alert.fenceName} geofence`,
+    });
+}
         
         const io = req.app.get("io");
         

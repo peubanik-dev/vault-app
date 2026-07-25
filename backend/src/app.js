@@ -7,6 +7,7 @@ import deviceRoutes from "./routes/device.route.js";
 import locationRoutes from "./routes/location.route.js";
 import geofenceRoutes from "./routes/geofence.routes.js";
 import sosRoutes from "./routes/sos.route.js";
+import notificationRoutes from "./routes/notification.route.js";
 dotenv.config();
 
 const app = express();
@@ -19,6 +20,7 @@ app.use("/api/device", deviceRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/api/geofence", geofenceRoutes);
 app.use("/api/sos", sosRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
     res.send("GPS Tracker API is running...");

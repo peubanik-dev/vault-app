@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Tracker from "./pages/Tracker";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Notifications from "./components/Notifications";
 function App() {
   return (
     <Routes>
@@ -23,6 +24,14 @@ function App() {
   element={
     <ProtectedRoute>
       <Tracker />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/notifications"
+  element={
+    <ProtectedRoute>
+      <Notifications />
     </ProtectedRoute>
   }
 />

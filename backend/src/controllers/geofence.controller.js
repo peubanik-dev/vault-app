@@ -66,9 +66,7 @@ export const getGeofence = async (req, res) => {
     });
 
     if (geofences.length===0) {
-      return res.status(404).json({
-        message: "No geofence found",
-      });
+      return res.status(200).json([]);
     }
 
     res.status(200).json(geofences);

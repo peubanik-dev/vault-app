@@ -23,7 +23,13 @@ export default function Navbar() {
         >
           Tracker
         </button>
-
+            <button
+  onClick={() => navigate("/notifications")}
+  className="btn btn-ghost btn-circle text-xl"
+  title="Notifications"
+>
+  🔔
+</button>
         <button
           onClick={handleLogout}
           className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"

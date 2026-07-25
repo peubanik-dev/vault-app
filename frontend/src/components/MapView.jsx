@@ -1,19 +1,36 @@
-import { MapContainer, TileLayer, Marker, Popup,Polyline, useMap,Circle } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+  useMap,
+  Circle,
+} from "react-leaflet";
 import { useEffect } from "react";
 import "leaflet/dist/leaflet.css";
+
+const isValidCoord = (lat, lng) =>
+  Number.isFinite(Number(lat)) &&
+  Number.isFinite(Number(lng));
+
 
 function ChangeView({ center }) {
   const map = useMap();
 
   useEffect(() => {
-    map.flyTo(center, map.getZoom(), {
-      animate: true,
-      duration: 0.8,
+    if (!isValidCoord(center?.[0], center?.[1])) return;
+
+    map.setView(center, map.getZoom(), {
+      animate: false,
     });
+
   }, [center, map]);
 
   return null;
 }
+
+
 function FitBounds({ path }) {
   const map = useMap();
 
@@ -28,91 +45,133 @@ function FitBounds({ path }) {
   return null;
 }
 
-export default function MapView({ location,history,playbackIndex, geofences = [],sosLocation}) {
-console.log(history);
 
-console.log("Geofences:", geofences);
-geofences.forEach((g) => {
-  console.log(g.name, g.latitude, g.longitude, g.radius);
-});
-  const path = history.map((point) => [
-    point.latitude,
-    point.longitude,
+export default function MapView({
+  location,
+  history = [],
+  playbackIndex,
+  geofences = [],
+  sosLocation,
+}) {
+
+  const cleanHistory = history.filter((point) =>
+    isValidCoord(point.latitude, point.longitude)
+  );
+
+
+  const path = cleanHistory.map((point) => [
+    Number(point.latitude),
+    Number(point.longitude),
   ]);
-const currentPoint =
-  history[playbackIndex] || location|| sosLocation;
-  console.log("Geofences:", geofences);
+
+
+  let currentPoint = null;
+
+
+  if (
+    playbackIndex !== null &&
+    history[playbackIndex] &&
+    isValidCoord(
+      history[playbackIndex].latitude,
+      history[playbackIndex].longitude
+    )
+  ) {
+    currentPoint = history[playbackIndex];
+  }
+  else if (
+    location &&
+    isValidCoord(location.latitude, location.longitude)
+  ) {
+    currentPoint = location;
+  }
+  else if (
+    sosLocation &&
+    isValidCoord(sosLocation.latitude, sosLocation.longitude)
+  ) {
+    currentPoint = sosLocation;
+  }
+
+
+  if (!currentPoint) {
+    return (
+      <div className="h-[400px] bg-white rounded-xl shadow flex items-center justify-center">
+        Waiting for location...
+      </div>
+    );
+  }
+
+
+  const center = [
+    Number(currentPoint.latitude),
+    Number(currentPoint.longitude),
+  ];
+
+
+  const validGeofences = geofences.filter((g) =>
+    isValidCoord(g.latitude, g.longitude)
+  );
+
+
   return (
     <MapContainer
-  center={[
-  currentPoint.latitude,
-  currentPoint.longitude,
-]}
-  zoom={15}
-  className="h-[400px] sm:h-[500px] lg:h-full w-full rounded-xl"
->
+      center={center}
+      zoom={15}
+      className="h-[400px] sm:h-[500px] lg:h-full w-full rounded-xl"
+    >
 
-      
-      <FitBounds path={path} />
-      <ChangeView
-  center={[
-    currentPoint.latitude,
-    currentPoint.longitude,
-  ]}
-/>
+      <ChangeView center={center}/>
+
+      {path.length > 1 && (
+        <FitBounds path={path}/>
+      )}
+
 
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+
+
       {path.length > 1 && (
-  <Polyline positions={path} />
-)}
+        <Polyline positions={path}/>
+      )}
 
-{geofences.map((g) => (
-  <Circle
-    key={g._id}
-    center={[g.latitude, g.longitude]}
-    radius={g.radius}
-    pathOptions={{
-      color: "red",
-      fillColor: "red",
-      fillOpacity: 0.2,
-    }}
-  />
-))}
-{sosLocation && (
-  <Marker
-    position={[
-      sosLocation.latitude,
-      sosLocation.longitude
-    ]}
-  >
-    <Popup>
-      🚨 SOS Location
-    </Popup>
-  </Marker>
-)}
 
-      <Marker
-        key={`${location.latitude}-${location.longitude}`}
-       position={[
-  currentPoint.latitude,
-  currentPoint.longitude,
-]}
-      >
+      {validGeofences.map((g)=>(
+        <Circle
+          key={g._id}
+          center={[
+            Number(g.latitude),
+            Number(g.longitude)
+          ]}
+          radius={Number(g.radius)}
+        />
+      ))}
+
+
+      {sosLocation &&
+       isValidCoord(sosLocation.latitude,sosLocation.longitude) &&
+       (
+        <Marker
+          position={[
+            Number(sosLocation.latitude),
+            Number(sosLocation.longitude)
+          ]}
+        >
+          <Popup>
+            SOS Location
+          </Popup>
+        </Marker>
+       )
+      }
+
+
+      <Marker position={center}>
         <Popup>
-          <div>
-            <h3>Device Location</h3>
-            <p>
-              Latitude: {currentPoint.latitude}
-            </p>
-            <p>
-              Longitude: {currentPoint.longitude}
-            </p>
-          </div>
+          Device Location
         </Popup>
       </Marker>
+
 
     </MapContainer>
   );

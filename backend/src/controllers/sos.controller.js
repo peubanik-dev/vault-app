@@ -22,7 +22,6 @@ export const sendSOS = async (req, res) => {
       message,
     });
 
-    // send realtime alert
     const io = req.app.get("io");
 
     if (io) {

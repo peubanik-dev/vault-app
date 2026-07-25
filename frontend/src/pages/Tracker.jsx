@@ -57,6 +57,7 @@ const handleConnect = async () => {
 localStorage.setItem("trackerDeviceSecret", deviceSecret);
    setConnected(true);
 localStorage.setItem("trackerConnected", "true");
+
   
     
   } catch (err) {

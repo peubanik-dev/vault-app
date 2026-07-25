@@ -62,11 +62,12 @@ export default function Login() {
         )}
 
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
 
           <input
             type="email"
             name="email"
+            autoComplete="off"
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
@@ -77,6 +78,7 @@ export default function Login() {
           <input
             type="password"
             name="password"
+             autoComplete="new-password"
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}

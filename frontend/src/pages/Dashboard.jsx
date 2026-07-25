@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [loadingDevices, setLoadingDevices] = useState(true);
   const [history, setHistory] = useState([]);
-  const [playbackIndex, setPlaybackIndex] = useState(0);
+  const [playbackIndex, setPlaybackIndex] = useState(null);
 const [isPlaying, setIsPlaying] = useState(false);
   const [newSecret, setNewSecret] = useState(null);
   const [geofences, setGeofences] = useState([]);
@@ -33,13 +33,32 @@ const [isPlaying, setIsPlaying] = useState(false);
       setDevices(res.data.devices);
 
 setSelectedDevice((prev) => {
-  if (!prev) return res.data.devices[0] || null;
+  if (!prev) {
+    const firstDevice = res.data.devices[0] || null;
 
-  return (
+    if (firstDevice) {
+      localStorage.setItem(
+        "selectedDevice",
+        JSON.stringify(firstDevice)
+      );
+    }
+
+    return firstDevice;
+  }
+
+  const current =
     res.data.devices.find(
       (d) => d.deviceId === prev.deviceId
-    ) || null
-  );
+    ) || null;
+
+  if (current) {
+    localStorage.setItem(
+      "selectedDevice",
+      JSON.stringify(current)
+    );
+  }
+
+  return current;
 });
     } catch (err) {
       console.error(err);
@@ -381,9 +400,14 @@ const secretBanner = newSecret && (
           onSecretReceived={setNewSecret}/>
           <div className="flex flex-wrap gap-3 mb-4">
             {devices.map((device) => (
-              <div key={device._id} className="relative"> {/* ADDED wrapper */}
+              <div key={device._id} className="relative"> 
                 <button
-                  onClick={() => setSelectedDevice(device)}
+                  onClick={() => {setSelectedDevice(device);
+localStorage.setItem(
+    "selectedDevice",
+    JSON.stringify(device)
+  );
+}}
                   className={`px-4 py-2 pr-8 rounded-lg ${
                     selectedDevice?._id === device._id
                       ? "bg-blue-600 text-white"
@@ -392,7 +416,7 @@ const secretBanner = newSecret && (
                 >
                   {device.name}
                 </button>
-                {/* ADDED — delete icon */}
+                
                 <button
                   onClick={(e) => handleDeleteDevice(e, device._id)}
                   className={`absolute top-1/2 right-2 -translate-y-1/2 text-xs font-bold ${
@@ -408,37 +432,21 @@ const secretBanner = newSecret && (
             ))}
           </div>
 
-          
-         {location ? (
-  <>
-    <PlaybackControls
-      history={history}
-      playbackIndex={playbackIndex}
-      setPlaybackIndex={setPlaybackIndex}
-      isPlaying={isPlaying}
-      setIsPlaying={setIsPlaying}
-    />
+         <PlaybackControls
+  history={history}
+  playbackIndex={playbackIndex}
+  setPlaybackIndex={setPlaybackIndex}
+  isPlaying={isPlaying}
+  setIsPlaying={setIsPlaying}
+/>
+<MapView
+  location={location}
+  history={history}
+  playbackIndex={playbackIndex}
+  geofences={geofences}
+  sosLocation={sosLocation}
+/>
 
-    <MapView
-      location={location}
-      history={history}
-      playbackIndex={playbackIndex}
-      geofences={geofences}
-      sosLocation={sosLocation}
-    />
-  </>
-) : (
-  <div className="h-[400px] sm:h-[500px] lg:h-full bg-white rounded-xl shadow flex items-center justify-center">
-    <div className="text-center">
-      <h2 className="text-xl font-semibold text-gray-700">
-        No location available
-      </h2>
-      <p className="text-gray-500 mt-2">
-        Open the Tracker and start sharing location.
-      </p>
-    </div>
-  </div>
-)}
         </div>
 
 
